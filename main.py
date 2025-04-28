@@ -8,9 +8,9 @@ import cv2
 
 def main():
     # Read video, returns array of frames (array of pixels)
-    input_video = 'input_video.mp4'
+    input_video = 'input_video2.mp4'
     video_frames = read_video('input_videos/'+input_video)
-    video_frames = video_frames[:10]
+    #video_frames = video_frames[:10]
     
     # Initialize Tracker, uses best.pt model
     model = 'best_smalldataset'
@@ -21,30 +21,6 @@ def main():
 
     # Draw annotations
     annotated_video_frames = tracker.draw_annotations(video_frames, tracks)
-
-    # # camera movement estimator
-    # camera_movement_esitmator = CameraMovementEstimator(video_frames[0])
-    # camera_movement_per_frame = camera_movement_esitmator.get_camera_movement(video_frames,
-    #                                                                           read_from_stub=True,
-    #                                                                           stub_path='stubs/camera_movement_stub.pk1')
-    # camera_movement_esitmator.add_adjust_postions_to_tracks(detections, camera_movement_per_frame)
-
-    # # View Transformer
-    # view_transformer = ViewTransformer()
-    # view_transformer.add_tranfsormed_position_to_tracks(detections)
-
-    # # interpolate puck positions
-    # # detections["puck"] = tracker.interpolate_puck_positions(detections["puck"])
-    
-    # # Speed and distance estimator
-    # #speed_and_distance_estimator = SpeedDistanceEstimator()
-    # #speed_and_distance_estimator.add_speed_and_distance_to_tracks(detections)
-
-    # # Draw Camera Movement
-    # #output_video_frames = camera_movement_esitmator.draw_camera_movement(output_video_frames, camera_movement_per_frame)
-
-    # # Draw Speed and Distance
-    # #speed_and_distance_estimator.draw_speed_and_distance(output_video_frames, detections)
 
     # Save video
     save_video(annotated_video_frames, f'outputs/{model}.avi')
