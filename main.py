@@ -1,5 +1,6 @@
 from utils import read_video, save_video
 from tracker import Tracker
+from homography import PerspectiveTransformer
 # from team_assigner import TeamAssigner
 # from camera_movement_estimator import CameraMovementEstimator
 # from view_transformer import ViewTransformer
@@ -10,10 +11,10 @@ def main():
     # Read video, returns array of frames (array of pixels)
     input_video = 'input_video2.mp4'
     video_frames = read_video('input_videos/'+input_video)
-    #video_frames = video_frames[:10]
+    video_frames = video_frames
     
     # Initialize Tracker, uses best.pt model
-    model = 'best_smalldataset'
+    model = 'best'
     tracker = Tracker(f'./model_training/models/{model}.pt')
 
     # Track the players in the video
@@ -21,6 +22,10 @@ def main():
 
     # Draw annotations
     annotated_video_frames = tracker.draw_annotations(video_frames, tracks)
+
+    # Compute homography
+    transformer = PerspectiveTransformer(f"./homography")
+    homographies = transformer.calculate_homographies(video_frames)
 
     # Save video
     save_video(annotated_video_frames, f'outputs/{model}.avi')
