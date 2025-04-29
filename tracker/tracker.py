@@ -164,23 +164,27 @@ class Tracker:
         cv2.drawContours(frame, [triangle_points], 0, color, cv2.FILLED)
         return frame
 
-    def add_positions_to_tracks(self, tracks):
-        for object, object_tracks in tracks.items():
-            for frame_num, track in enumerate(object_tracks):
-                for track_id, track_info in track.items():
-                    bbox = track_info['bbox']
-                    position = get_center_of_bbox(bbox)
-                    tracks[object][frame_num][track_id]['position'] = position
+    def draw_player_trajectories(self, video_frames, tracks, homographies):
+        # Get rink image
+        rink = cv2.imread('./homography/geometric_model/rink.png')
 
-    def interpolate_puck_positions(self, puck_positions):
-        puck_positions = [x.get(1, {}).get('bbox', []) for x in puck_positions]
-        df_puck_positions = pd.DataFrame(puck_positions, columns=['x1','y1','x2','y2'])
+        # loop over each frame
+        for frame_num, homography in enumerate(homographies):
+            # only plot trajectories for skaters
+            for cls in ['home-player', 'away-player']:
+                players = tracks[cls][frame_num]
 
-        # interpolate missing values
-        df_puck_positions = df_puck_positions.interpolate()
-        df_puck_positions = df_puck_positions.bfill() # in case the first frame is missing
+                # For each skater on that frame
+                for player in players:
+                    # Get bottom middle of bounding box
+                    bbox = players[player]['bbox']
+                    y2 = int(bbox[3])
+                    x_center, _ = self.get_center_of_bbox(bbox)
+                    bottom_box = [x_center, y2]
 
-        puck_positions = [{1: {"bbox": x}} for x in df_puck_positions.to_numpy().tolist()]
+                    # transform bottom of bounding box using homography
+                    transformed_bottom = cv2.perspectiveTransform(np.array([[bottom_box]], np.float64), homography)[0][0]
 
-        return puck_positions
-    
+                    # plot bottom of box on rink
+                    rink = cv2.circle(rink, (round(transformed_bottom[0]), round(transformed_bottom[1])), 2, self.colors[cls], 5)
+                    cv2.imwrite(f'./outputs/tracking_frames/frame_{frame_num}.jpg', rink)

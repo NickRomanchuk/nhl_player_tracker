@@ -24,12 +24,12 @@ class PerspectiveTransformer():
             dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1,1,2)
             M, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
 
-            key_persepective = cv2.warpPerspective(frame, M, (frame.shape[1], frame.shape[0]))
-            result = cv2.warpPerspective(key_persepective, self.key_frames[name]['homography'], (self.geometric_model.shape[1], self.geometric_model.shape[0]))
+            combined_transform = M @ self.key_frames[name]['homography']
+            result = cv2.warpPerspective(frame, combined_transform, (self.geometric_model.shape[1], self.geometric_model.shape[0]))
 
             overlayed_frame = cv2.addWeighted(self.geometric_model, 0.4, result, 0.5, 0)
             cv2.imwrite(f'outputs/perspective_frames/frame_{frame_num}.jpg', overlayed_frame)
-            homographies.append(M)
+            homographies.append(combined_transform)
 
         return homographies
 
