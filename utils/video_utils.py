@@ -1,4 +1,6 @@
 import cv2
+import os
+import numpy as np
 
 def read_video(video_path):
     cap = cv2.VideoCapture(video_path)
@@ -17,11 +19,20 @@ def read_video(video_path):
 
     return frames
 
-def save_video(output_video_frames, output_video_path):
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(output_video_path, fourcc, 30, (output_video_frames[0].shape[1], output_video_frames[0].shape[0]))
+def save_video(output_video_path):
+    frames = []
+    frame_list = os.listdir(f"outputs/annotated_frames")
 
-    for frame in output_video_frames:
+    for frame in frame_list:
+        annotated = cv2.imread(f"outputs/annotated_frames/{frame}")
+        perspective = cv2.imread(f"outputs/perspective_frames/{frame}")
+        perspective = cv2.resize(perspective, (annotated.shape[1], annotated.shape[0]))
+        frames.append(np.concatenate((annotated, perspective), axis=1))
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter(output_video_path, fourcc, 60, (frames[0].shape[1], frames[0].shape[0]))
+
+    for frame in np.array(frames):
         out.write(frame)
         
     out.release()

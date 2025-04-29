@@ -15,20 +15,20 @@ def main():
     
     # Initialize Tracker, uses best.pt model
     model = 'best'
-    tracker = Tracker(f'./model_training/models/{model}.pt')
+    #tracker = Tracker(f'./model_training/models/{model}.pt')
 
     # Track the players in the video
-    tracks = tracker.track_players(video_frames)
+    #tracks = tracker.track_players(video_frames)
 
     # Draw annotations
-    annotated_video_frames = tracker.draw_annotations(video_frames, tracks)
+    #annotated_video_frames = tracker.draw_annotations(video_frames, tracks)
 
     # Compute homography
-    transformer = PerspectiveTransformer(f"./homography")
-    homographies = transformer.calculate_homographies(video_frames)
+    #transformer = PerspectiveTransformer(f"./homography")
+    #homographies = transformer.calculate_homographies(video_frames)
 
     # Save video
-    save_video(annotated_video_frames, f'outputs/{model}.avi')
+    save_video(f'outputs/{model}.avi')
 
 if __name__ == '__main__':
     main()
