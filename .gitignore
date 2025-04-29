@@ -1,3 +1,8 @@
 model_training/hockey-playerdetection-6
 api_key.py
 input_videos/full_video.mkv
+outputs/annotated_frames
+outputs/bbox_frames
+outputs/perspective_frames
+outputs/raw_frames
+outputs/tracking_frames

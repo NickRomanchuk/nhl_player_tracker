@@ -28,7 +28,7 @@ class PerspectiveTransformer():
             result = cv2.warpPerspective(frame, combined_transform, (self.geometric_model.shape[1], self.geometric_model.shape[0]))
 
             overlayed_frame = cv2.addWeighted(self.geometric_model, 0.4, result, 0.5, 0)
-            cv2.imwrite(f'outputs/perspective_frames/frame_{frame_num}.jpg', overlayed_frame)
+            cv2.imwrite(f'outputs/perspective_frames/frame_{str(frame_num).zfill(4)}.jpg', overlayed_frame)
             homographies.append(combined_transform)
 
         return homographies

@@ -72,7 +72,7 @@ class Tracker:
                     frame = self.draw_box(frame, object["bbox"], self.colors[key])
 
             # Save the frame
-            cv2.imwrite(f'outputs/bbox_frames/frame_{frame_num}.jpg',frame)
+            cv2.imwrite(f'outputs/bbox_frames/frame_{str(frame_num).zfill(4)}.jpg',frame)
 
     def draw_box(self, frame, bbox, color):
         cv2.rectangle(frame,
@@ -102,7 +102,7 @@ class Tracker:
                         if 'player' in key:
                             frame = self.draw_track_id(frame, object["bbox"], self.colors[key], track_id)
             
-            cv2.imwrite(f'outputs/annotated_frames/frame_{frame_num}.jpg',frame)
+            cv2.imwrite(f'outputs/annotated_frames/frame_{str(frame_num).zfill(4)}.jpg',frame)
             output_video_frames.append(frame)
         
         return output_video_frames
@@ -187,4 +187,4 @@ class Tracker:
 
                     # plot bottom of box on rink
                     rink = cv2.circle(rink, (round(transformed_bottom[0]), round(transformed_bottom[1])), 2, self.colors[cls], 5)
-                    cv2.imwrite(f'./outputs/tracking_frames/frame_{frame_num}.jpg', rink)
+                    cv2.imwrite(f'./outputs/tracking_frames/frame_{str(frame_num).zfill(4)}.jpg', rink)
