@@ -37,7 +37,6 @@ class Tracker:
                 cls_id = frame_detection[3]
                 cls_name = cls_names[cls_id]
                 track_id = self.update_track_id(cls_name, int(frame_detection[4]))
-
                 tracks[cls_name][frame_num][track_id] = {"bbox":bbox}
         
         # Save the bbox detections
@@ -97,7 +96,7 @@ class Tracker:
                 # Annotate each of the detected objects for that class
                 for track_id, object in tracks[key][frame_num].items():
                     if key == 'puck':
-                        frame = self.draw_triangle(frame, object["bbox"], self.colors[key])
+                        continue
                     else:
                         frame = self.draw_ellipse(frame, object["bbox"], self.colors[key])
                         if 'player' in key:
