@@ -32,7 +32,6 @@ class DataVisualizer():
         for fileName in os.listdir(labelPath):
             file = open(labelPath + fileName, "r")
             image = cv2.imread(imagePath + fileName[:-4] + '.jpg')
-            print(fileName)
             counts = {}
             for line in file:
                 lineList = line.split(" ")
@@ -63,7 +62,6 @@ class DataVisualizer():
         y2 = y1 + bb_h
 
         bbox = image[int(y1):int(y2), int(x1):int(x2)]
-        print(bbox.shape)
         return bbox.mean(axis=(0,1))
 
     def plotBoxSize(self, type='train'):
@@ -111,7 +109,6 @@ class DataVisualizer():
     
     def plotBoxLocation(self, type='train'):
         boxData, _ = self.collectBoxData(type=type)
-        print('Here')
         colors = list("rgbcmyk")
         
         for name, data in boxData['location'].items():
