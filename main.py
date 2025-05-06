@@ -4,7 +4,7 @@ from homography import PerspectiveTransformer
 
 def main():
     # Read video, returns array of frames (array of pixels)
-    input_video = 'input_video3.mp4'
+    input_video = 'input_video2.mp4'
     video_frames = read_video('input_videos/'+input_video)
     #video_frames = video_frames[:5]
     
