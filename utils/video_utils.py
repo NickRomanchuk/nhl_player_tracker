@@ -20,23 +20,21 @@ def read_video(video_path):
     return frames
 
 def save_video(output_video_path):
-    frames = []
     frame_list = os.listdir(f"outputs/annotated_frames")
 
-    for frame in frame_list:
+
+    for frame_num, frame in enumerate(frame_list):
         annotated = cv2.imread(f"outputs/annotated_frames/{frame}")
         perspective = cv2.rotate(cv2.imread(f"outputs/perspective_frames/{frame}"), cv2.ROTATE_90_CLOCKWISE)
         tracking = cv2.rotate(cv2.imread(f"outputs/tracking_frames/{frame}"), cv2.ROTATE_90_CLOCKWISE)
 
         perspective = cv2.resize(perspective, (annotated.shape[1], annotated.shape[0]))
         tracking = cv2.resize(tracking, (annotated.shape[1], annotated.shape[0]))
-
-        frames.append(np.concatenate((annotated, perspective, tracking), axis=0))
-
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(output_video_path, fourcc, 60, (frames[0].shape[1], frames[0].shape[0]))
-
-    for frame in np.array(frames):
+        
+        frame = np.concatenate((annotated, perspective, tracking), axis=0)
+        if frame_num == 0:
+            fourcc = cv2.VideoWriter_fourcc(*'XVID')
+            out = cv2.VideoWriter(output_video_path, fourcc, 60, (frame.shape[1], frame.shape[0]))
         out.write(frame)
         
     out.release()

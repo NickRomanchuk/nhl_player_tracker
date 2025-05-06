@@ -1,17 +1,12 @@
 from utils import read_video, save_video
 from tracker import Tracker
 from homography import PerspectiveTransformer
-# from team_assigner import TeamAssigner
-# from camera_movement_estimator import CameraMovementEstimator
-# from view_transformer import ViewTransformer
-# from speed_and_distance_estimator import SpeedDistanceEstimator
-import cv2
 
 def main():
     # Read video, returns array of frames (array of pixels)
     input_video = 'input_video2.mp4'
     video_frames = read_video('input_videos/'+input_video)
-    #video_frames = video_frames[:100]
+    #video_frames = video_frames[:5]
     
     # Initialize Tracker, uses best.pt model
     model = 'best'
