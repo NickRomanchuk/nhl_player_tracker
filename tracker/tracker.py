@@ -7,7 +7,7 @@ import pandas as pd
 class Tracker:
     batch_size = 20
     image_size = 640
-    confidence = 0.7
+    confidence = 0.75
     text_param = {'rectangle_width': 40, 'rectangle_height': 20, 'type': cv2.FONT_HERSHEY_SIMPLEX, 'scale': 0.6, 'thickness': 2}
     player_ids = {'home-player':{'count': 0}, 'away-player':{'count': 0}}
     colors = {"text": (0, 0, 0), "away-player": (20, 181, 252), "away-goalie": (20, 181, 252), "home-player": (255, 125, 0), "home-goalie": (255, 125, 0), "referee": (0, 0, 255), "puck": (0,0,0)}
