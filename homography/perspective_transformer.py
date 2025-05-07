@@ -1,6 +1,7 @@
 import os
 import cv2
 import numpy as np
+from scipy.spatial import ConvexHull
 
 class PerspectiveTransformer():
     def __init__(self, path):
@@ -22,7 +23,7 @@ class PerspectiveTransformer():
 
         # For each frame we will calculate homography
         for frame_num, frame in enumerate(video_frames):
-            print(frame_num)
+            print(f"Frame: {frame_num}")
             if frame_num == 0:
                 homographies.append(self.key_frames['key_frame_1']['homography'] @ self.first_frame)
             else:
@@ -47,6 +48,7 @@ class PerspectiveTransformer():
 
     def calculate_closest_keyframe(self, kp_frame, desc_frame, key, initial_homography):
         name = None
+        maxArea = 0
         most_matches = []
         
         set_key_frames = self.get_set_keys(key)
@@ -61,14 +63,60 @@ class PerspectiveTransformer():
             key_pts = np.float32([kp_key[m.trainIdx].pt for m in matches]).reshape(-1,1,2)
             matches = self.get_dist_matches(frame_pts, key_pts, initial_homography)
             
-            print(f"{key}: {len(key_pts)} vs {len(matches)}")
-            # Determine closest key frame seen so far
-            if len(matches) > len(most_matches):
+            # Determine closest key frame seen so far          
+            area = self.area_enclosed(matches)
+            print(f"{key}: {len(key_pts)} vs {len(matches)}, area: {area}")
+            if (area > maxArea) and (len(matches) > (len(most_matches) / 3)):
                 most_matches = matches
                 name = key
-
+                maxArea = area
+        
         kp_frame, kp_key = zip(*most_matches)
         return kp_frame, kp_key, name
+    
+    def area_enclosed(self, matches):
+        if len(matches) < 4:
+            return 0
+        
+        _, points = zip(*matches)
+        points = np.array(points)
+        
+        pi2 = np.pi/2.
+
+        # get the convex hull for the points
+        hull_points = points[ConvexHull(points).vertices]
+
+        # calculate edge angles
+        edges = np.zeros((len(hull_points)-1, 2))
+        edges = hull_points[1:] - hull_points[:-1]
+
+        angles = np.zeros((len(edges)))
+        angles = np.arctan2(edges[:, 1], edges[:, 0])
+
+        angles = np.abs(np.mod(angles, pi2))
+        angles = np.unique(angles)
+
+        # find rotation matrices
+        rotations = np.vstack([
+            np.cos(angles),
+            np.cos(angles-pi2),
+            np.cos(angles+pi2),
+            np.cos(angles)]).T
+        rotations = rotations.reshape((-1, 2, 2))
+
+        # apply rotations to the hull
+        rot_points = np.dot(rotations, hull_points.T)
+
+        # find the bounding points
+        min_x = np.nanmin(rot_points[:, 0], axis=1)
+        max_x = np.nanmax(rot_points[:, 0], axis=1)
+        min_y = np.nanmin(rot_points[:, 1], axis=1)
+        max_y = np.nanmax(rot_points[:, 1], axis=1)
+
+        # find the box with the best area
+        areas = (max_x - min_x) * (max_y - min_y)
+
+        return np.min(areas)
 
     def get_set_keys(self, key):
         if key == None:
@@ -79,7 +127,7 @@ class PerspectiveTransformer():
         elif key[-1] == '3':
             keys = [key, key[:-1]+'2']
         elif key[-1] == '2':
-            keys = [key, key[:-1]+'3']
+            keys = self.key_frames.keys()
 
         return keys
     
@@ -91,7 +139,7 @@ class PerspectiveTransformer():
 
         match = []
         for m,n in matches:
-            if m.distance < 0.6*n.distance:
+            if m.distance < 0.8*n.distance:
                 match.append(m)
 
         return match
