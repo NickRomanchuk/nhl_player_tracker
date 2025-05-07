@@ -16,7 +16,7 @@ class PerspectiveTransformer():
         self.geometric_model = cv2.imread(f"{path}/geometric_model/rink.png")
 
     def calculate_homographies(self, video_frames):
-        prev_homography = self.first_frame
+        prev_homography_queue = [self.first_frame, self.first_frame, self.first_frame]
         homographies = []
         name = None
 
@@ -28,11 +28,14 @@ class PerspectiveTransformer():
             else:
                 # Calcualte closest key frame and get matching points
                 kp_frame, desc_frame = self.sift.detectAndCompute(frame, None)
-                kp_frame, kp_key, name = self.calculate_closest_keyframe(kp_frame, desc_frame, name, prev_homography)
+                average_prev_homography = (prev_homography_queue[0] + prev_homography_queue[1] + prev_homography_queue[2]) / len(prev_homography_queue)
+                kp_frame, kp_key, name = self.calculate_closest_keyframe(kp_frame, desc_frame, name, average_prev_homography)
 
                 # Compute homography from matching points
                 prev_homography, _ = cv2.findHomography(np.array(kp_frame), np.array(kp_key), cv2.RANSAC, 5.0)
                 combined_transform = self.key_frames[name]['homography'] @ prev_homography
+                prev_homography_queue.append(prev_homography)
+                prev_homography_queue.pop(0)
                 homographies.append(combined_transform)
 
             # Save result (transformed overlayed on rink)
@@ -98,7 +101,7 @@ class PerspectiveTransformer():
 
         matches = []
         for i in range(len(key_pts)):
-            if np.linalg.norm(key_pts[i]-trans_frame_pts[i]) < 300:
+            if np.linalg.norm(key_pts[i]-trans_frame_pts[i]) < 275:
                 matches.append((frame_pts[i][0], key_pts[i][0]))
 
         return matches
