@@ -98,7 +98,7 @@ class PerspectiveTransformer():
 
         matches = []
         for i in range(len(key_pts)):
-            if np.linalg.norm(key_pts[i]-trans_frame_pts[i]) < 375:
+            if np.linalg.norm(key_pts[i]-trans_frame_pts[i]) < 300:
                 matches.append((frame_pts[i][0], key_pts[i][0]))
 
         return matches

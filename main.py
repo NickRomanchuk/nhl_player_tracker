@@ -9,7 +9,7 @@ def main():
     #video_frames = video_frames[:100]
     
     # Initialize Tracker, uses best.pt model
-    model = 'best'
+    model = 'last'
     tracker = Tracker(f'./model_training/models/{model}.pt')
 
     # Track the players in the video

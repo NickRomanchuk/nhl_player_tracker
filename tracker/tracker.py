@@ -7,7 +7,7 @@ import pandas as pd
 class Tracker:
     batch_size = 20
     image_size = 640
-    confidence = 0.75
+    confidence = 0.7
     text_param = {'rectangle_width': 40, 'rectangle_height': 20, 'type': cv2.FONT_HERSHEY_SIMPLEX, 'scale': 0.6, 'thickness': 2}
     player_ids = {'home-player':{'count': 0}, 'away-player':{'count': 0}}
     colors = {"text": (0, 0, 0), "away-player": (20, 181, 252), "away-goalie": (20, 181, 252), "home-player": (255, 125, 0), "home-goalie": (255, 125, 0), "referee": (0, 0, 255), "puck": (0,0,0)}
@@ -186,5 +186,5 @@ class Tracker:
                     transformed_bottom = cv2.perspectiveTransform(np.array([[bottom_box]], np.float64), homography)[0][0]
 
                     # plot bottom of box on rink
-                    rink = cv2.circle(rink, (round(transformed_bottom[0]), round(transformed_bottom[1])), 2, self.colors[cls], 5)
+                    rink = cv2.circle(rink, (round(transformed_bottom[0]), round(transformed_bottom[1])), 1, self.colors[cls], 2)
                     cv2.imwrite(f'./outputs/tracking_frames/frame_{str(frame_num).zfill(4)}.jpg', rink)
