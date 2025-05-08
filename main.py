@@ -8,6 +8,7 @@ def main():
 
     # Read video, returns array of frames
     video_frames = read_video('input_videos/'+input_video)
+    video_frames = video_frames[:3]
     
     # Compute homography from frame to rink model
     transformer = PerspectiveTransformer(f"./homography")
