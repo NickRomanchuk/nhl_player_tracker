@@ -112,8 +112,6 @@ class Tracker:
         return frame
     
     def draw_annotations(self, video_frames, tracks):
-        output_video_frames = []
-
         #Loop over each frame
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
@@ -134,9 +132,6 @@ class Tracker:
                                 frame = self.draw_speed(frame, object["bbox"], object["speed"])
             
             cv2.imwrite(f'outputs/annotated_frames/frame_{str(frame_num).zfill(4)}.jpg',frame)
-            output_video_frames.append(frame)
-        
-        return output_video_frames
     
     def draw_ellipse(self, frame, bbox, color):
         y2 = int(bbox[3])
