@@ -153,5 +153,3 @@ class PerspectiveTransformer():
                 matches.append((frame_pts[i][0], key_pts[i][0]))
 
         return matches
-
-
