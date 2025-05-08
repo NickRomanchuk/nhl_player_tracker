@@ -8,9 +8,19 @@ class Tracker:
     batch_size = 20
     image_size = 640
     confidence = 0.8
-    text_param = {'rectangle_width': 40, 'rectangle_height': 20, 'type': cv2.FONT_HERSHEY_SIMPLEX, 'scale': 0.6, 'thickness': 2}
+    text_param = {'rectangle_width': 40, 
+                  'rectangle_height': 20, 
+                  'type': cv2.FONT_HERSHEY_SIMPLEX, 
+                  'scale': 0.6, 
+                  'thickness': 2}
     player_ids = {'home-player':{'count': 0}, 'away-player':{'count': 0}}
-    colors = {"text": (0, 0, 0), "away-player": (20, 181, 252), "away-goalie": (20, 181, 252), "home-player": (255, 125, 0), "home-goalie": (255, 125, 0), "referee": (0, 0, 255), "puck": (0,0,0)}
+    colors = {"text": (0, 0, 0), 
+              "away-player": (20, 181, 252), 
+              "away-goalie": (20, 181, 252), 
+              "home-player": (255, 125, 0), 
+              "home-goalie": (255, 125, 0), 
+              "referee": (0, 0, 255), 
+              "puck": (0,0,0)}
 
     def __init__(self, model_path):
         self.model = YOLO(model_path)
@@ -24,7 +34,6 @@ class Tracker:
 
         tracks = {"away-player":[], "away-goalie":[], "home-player":[], "home-goalie":[], "referee":[], "puck":[]}
         for frame_num, frame in enumerate(detections):
-            print(frame_num)
             # Convert to supervision detection format and track objects
             detection_supervision = sv.Detections.from_ultralytics(frame)
             detection_with_tracks = self.tracker.update_with_detections(detection_supervision)
@@ -48,7 +57,6 @@ class Tracker:
                 tracks[cls_name][frame_num][track_id]["position"] = transformed_bottom
 
                 # calculate displacement
-                print(track_id)
                 if track_id not in tracks[cls_name][frame_num-1].keys():
                     tracks[cls_name][frame_num][track_id]["displacement"] = [0, 0]
                 else:
@@ -58,7 +66,7 @@ class Tracker:
                     displacement = np.multiply((current_position - previous_position), meters_conversion)
                     displacement = np.hypot(displacement[0], displacement[1])
                     tracks[cls_name][frame_num][track_id]["displacement"] = displacement
-                    tracks[cls_name][frame_num][track_id]["speed"] = displacement * 60 * 3.6
+                    tracks[cls_name][frame_num][track_id]["speed"] = displacement * 60
 
         # Save the bbox detections
         self.save_detections(frames, tracks)
@@ -121,6 +129,9 @@ class Tracker:
                         frame = self.draw_ellipse(frame, object["bbox"], self.colors[key])
                         if 'player' in key:
                             frame = self.draw_track_id(frame, object["bbox"], self.colors[key], track_id)
+
+                            if object.get("speed", None):
+                                frame = self.draw_speed(frame, object["bbox"], object["speed"])
             
             cv2.imwrite(f'outputs/annotated_frames/frame_{str(frame_num).zfill(4)}.jpg',frame)
             output_video_frames.append(frame)
@@ -169,7 +180,25 @@ class Tracker:
                         self.text_param['thickness'])
 
         return frame
+    
+    def draw_speed(self, frame, bbox, speed):
+        text = f"{np.round(speed, 2)} m/s"
+        y1 = int(bbox[1])
+        x_center, _ = self.get_center_of_bbox(bbox)
+            
+        # Draw tracker id
+        text_width, text_height = cv2.getTextSize(f"{np.round(speed, 2)}", self.text_param['type'], self.text_param['scale'], self.text_param['thickness'])[0]
+        CenterCoordinates = (x_center - round(text_width / 2), y1 + round(text_height / 2))
+        cv2.putText(frame, 
+                        text, 
+                        CenterCoordinates, 
+                        self.text_param['type'],
+                        self.text_param['scale'],
+                        self.colors["text"],
+                        self.text_param['thickness'])
 
+        return frame
+    
     def get_center_of_bbox(self, bbox):
         x1, y1, x2, y2 = bbox
         return round((x1+x2)/2), round((y1+y2)/2)
@@ -184,7 +213,7 @@ class Tracker:
         cv2.drawContours(frame, [triangle_points], 0, color, cv2.FILLED)
         return frame
 
-    def draw_player_trajectories(self, video_frames, tracks, homographies):
+    def draw_player_trajectories(self, tracks, homographies):
         # Get rink image
         rink = cv2.imread('./homography/geometric_model/rink.png')
 

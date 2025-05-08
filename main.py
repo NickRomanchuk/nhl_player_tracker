@@ -6,7 +6,7 @@ def main():
     # Read video, returns array of frames (array of pixels)
     input_video = 'input_video3.mp4'
     video_frames = read_video('input_videos/'+input_video)
-    video_frames = video_frames[:3]
+    #video_frames = video_frames[:3]
     
     # Compute homography
     transformer = PerspectiveTransformer(f"./homography")
@@ -23,7 +23,7 @@ def main():
     annotated_video_frames = tracker.draw_annotations(video_frames, tracks)
 
     # Track player trajectories
-    tracker.draw_player_trajectories(video_frames, tracks, homographies)
+    tracker.draw_player_trajectories(tracks, homographies)
 
     # Save video
     save_video(f'outputs/{model}.avi')
