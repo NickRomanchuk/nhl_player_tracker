@@ -6,21 +6,21 @@ def main():
     # Read video, returns array of frames (array of pixels)
     input_video = 'input_video3.mp4'
     video_frames = read_video('input_videos/'+input_video)
-    #video_frames = video_frames[:100]
+    video_frames = video_frames[:3]
     
+    # Compute homography
+    transformer = PerspectiveTransformer(f"./homography")
+    homographies = transformer.calculate_homographies(video_frames)
+
     # Initialize Tracker, uses best.pt model
     model = 'last'
     tracker = Tracker(f'./model_training/models/{model}.pt')
 
     # Track the players in the video
-    tracks = tracker.track_players(video_frames)
+    tracks = tracker.track_players(video_frames, homographies)
 
     # Draw annotations
     annotated_video_frames = tracker.draw_annotations(video_frames, tracks)
-
-    # Compute homography
-    transformer = PerspectiveTransformer(f"./homography")
-    homographies = transformer.calculate_homographies(video_frames)
 
     # Track player trajectories
     tracker.draw_player_trajectories(video_frames, tracks, homographies)

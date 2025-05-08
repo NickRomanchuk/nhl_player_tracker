@@ -16,14 +16,15 @@ class Tracker:
         self.model = YOLO(model_path)
         self.tracker = sv.ByteTrack()
 
-    def track_players(self, frames):
+    def track_players(self, frames, homographies):
         # Takes array of frames, and returns array of YOLO object detections
         detections = self.detect_players(frames)
         cls_names = detections[0].names
+        meters_conversion = np.load("./homography/geometric_model/meters_conversion.npy")
 
         tracks = {"away-player":[], "away-goalie":[], "home-player":[], "home-goalie":[], "referee":[], "puck":[]}
         for frame_num, frame in enumerate(detections):
-
+            print(frame_num)
             # Convert to supervision detection format and track objects
             detection_supervision = sv.Detections.from_ultralytics(frame)
             detection_with_tracks = self.tracker.update_with_detections(detection_supervision)
@@ -38,10 +39,29 @@ class Tracker:
                 cls_name = cls_names[cls_id]
                 track_id = self.update_track_id(cls_name, int(frame_detection[4]))
                 tracks[cls_name][frame_num][track_id] = {"bbox":bbox}
-        
+
+                # position data
+                y2 = int(bbox[3])
+                x_center, _ = self.get_center_of_bbox(bbox)
+                bottom_box = [x_center, y2]
+                transformed_bottom = cv2.perspectiveTransform(np.array([[bottom_box]], np.float64), homographies[frame_num])[0][0]
+                tracks[cls_name][frame_num][track_id]["position"] = transformed_bottom
+
+                # calculate displacement
+                print(track_id)
+                if track_id not in tracks[cls_name][frame_num-1].keys():
+                    tracks[cls_name][frame_num][track_id]["displacement"] = [0, 0]
+                else:
+                    previous_position = tracks[cls_name][frame_num-1][track_id]["position"]
+                    current_position = tracks[cls_name][frame_num][track_id]["position"]
+                    
+                    displacement = np.multiply((current_position - previous_position), meters_conversion)
+                    displacement = np.hypot(displacement[0], displacement[1])
+                    tracks[cls_name][frame_num][track_id]["displacement"] = displacement
+                    tracks[cls_name][frame_num][track_id]["speed"] = displacement * 60 * 3.6
+
         # Save the bbox detections
         self.save_detections(frames, tracks)
-        
         return tracks
     
     def detect_players(self, frames):
@@ -188,3 +208,4 @@ class Tracker:
                     # plot bottom of box on rink
                     rink = cv2.circle(rink, (round(transformed_bottom[0]), round(transformed_bottom[1])), 1, self.colors[cls], 2)
                     cv2.imwrite(f'./outputs/tracking_frames/frame_{str(frame_num).zfill(4)}.jpg', rink)
+    
