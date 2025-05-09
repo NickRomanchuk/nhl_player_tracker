@@ -123,8 +123,8 @@ class PerspectiveTransformer():
         if len(matches) < 4:
             return 0
         
-        frame_points, _ = zip(*matches)
-        points = np.array(frame_points)
+        _, key_points = zip(*matches)
+        points = np.array(key_points)
         
         pi2 = np.pi/2.
 
