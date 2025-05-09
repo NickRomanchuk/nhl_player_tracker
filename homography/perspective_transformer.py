@@ -84,6 +84,41 @@ class PerspectiveTransformer():
         kp_frame, kp_key = zip(*most_matches)
         return kp_frame, kp_key, name
     
+    def get_set_keys(self, key):
+        # Return neighbouring key frames of current key frame
+        match key:
+            case None | 'key_frame_2':
+                return self.key_frames.keys()
+            case 'key_frame_1' | 'key_frame_3':    
+                return [key, key[:-1]+'2']
+    
+    def get_flann_matches(self, desc_frame, desc_key):
+        # Get FLANN key point matches
+        dist_thres = 0.8
+        flann = cv2.FlannBasedMatcher(dict(algorithm = 1, trees = 5), dict(checks=50))
+        matches = flann.knnMatch(desc_frame, desc_key, k=2)
+
+        # Eliminate matches where the second closest is within certain distance 
+        match = []
+        for m,n in matches:
+            if m.distance < dist_thres * n.distance:
+                match.append(m)
+
+        return match
+
+    def get_dist_matches(self, frame_pts, key_pts, initial_homography):
+        # Transform the the potential frame points to be in key frame perspective
+        dist_thres = 275
+        trans_frame_pts = cv2.perspectiveTransform(frame_pts, initial_homography)
+
+        # Remove matches if the transformed point is not close to the key frame point
+        matches = []
+        for key_pt, frame_pt, trans_frame_pt in zip(key_pts, frame_pts, trans_frame_pts):
+            if np.linalg.norm(key_pt - trans_frame_pt) < dist_thres:
+                matches.append((frame_pt[0], key_pt[0]))
+
+        return matches
+    
     def area_enclosed(self, matches):
         if len(matches) < 4:
             return 0
@@ -127,38 +162,3 @@ class PerspectiveTransformer():
         areas = (max_x - min_x) * (max_y - min_y)
 
         return np.min(areas)
-
-    def get_set_keys(self, key):
-        # Return neighbouring key frames of current key frame
-        match key:
-            case None | 'key_frame_2':
-                return self.key_frames.keys()
-            case 'key_frame_1' | 'key_frame_3':    
-                return [key, key[:-1]+'2']
-    
-    def get_flann_matches(self, desc_frame, desc_key):
-        # Get FLANN key point matches
-        dist_thres = 0.8
-        flann = cv2.FlannBasedMatcher(dict(algorithm = 1, trees = 5), dict(checks=50))
-        matches = flann.knnMatch(desc_frame, desc_key, k=2)
-
-        # Eliminate matches where the second closest is within certain distance 
-        match = []
-        for m,n in matches:
-            if m.distance < dist_thres * n.distance:
-                match.append(m)
-
-        return match
-
-    def get_dist_matches(self, frame_pts, key_pts, initial_homography):
-        # Transform the the potential frame points to be in key frame perspective
-        dist_thres = 275
-        trans_frame_pts = cv2.perspectiveTransform(frame_pts, initial_homography)
-
-        # Remove matches if the transformed point is not close to the key frame point
-        matches = []
-        for key_pt, frame_pt, trans_frame_pt in zip(key_pts, frame_pts, trans_frame_pts):
-            if np.linalg.norm(key_pt - trans_frame_pt) < dist_thres:
-                matches.append((frame_pt[0], key_pt[0]))
-
-        return matches

@@ -5,7 +5,7 @@ class Queue:
         self.queue = [object] * n
     
     def add(self, object):
-        self.queue.pop()
+        self.queue.pop(0)
         self.queue.append(object)
     
     def average(self):
